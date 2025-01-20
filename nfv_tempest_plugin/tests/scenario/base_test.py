@@ -168,10 +168,10 @@ class BaseTest(baremetal_manager.BareMetalManager):
             LOG.info('Instance details: fip: {}, instance_id: {}'.format(
                 srv['fip'], srv['id']))
 
-            srv['hypervisor_ip'] = self._get_hypervisor_ip_from_undercloud(
+            srv['hypervisor_ip'] = self._get_compute_ip(
                 **{'server_id': srv['id']})[0]
             self.assertNotEmpty(srv['hypervisor_ip'],
-                                "_get_hypervisor_ip_from_undercloud "
+                                "_get_compute_ip "
                                 "returned empty ip list")
             LOG.info('Test {} instance connectivity.'.format(srv['fip']))
             if fip:
@@ -200,7 +200,7 @@ class BaseTest(baremetal_manager.BareMetalManager):
         :return OSP version integer
         """
         if not hypervisor:
-            hypervisor = self._get_hypervisor_ip_from_undercloud()[0]
+            hypervisor = self._get_compute_ip()[0]
         ver = shell_utils.\
             run_command_over_ssh(hypervisor, 'cat /etc/rhosp-release')
         if ver == '':

@@ -55,7 +55,7 @@ class TestLacpScenarios(base_test.BaseTest):
         LOG.info('Starting deployment_lacp test.')
 
         if hypervisor_ip is None:
-            hypervisor_ip = self._get_hypervisor_ip_from_undercloud()[0]
+            hypervisor_ip = self._get_compute_ip()[0]
 
         lacp_config = json.loads(CONF.nfv_plugin_options.lacp_config)
         lacp_bond = self.retrieve_lacp_ovs_bond(hypervisor_ip)
@@ -213,7 +213,7 @@ class TestLacpScenarios(base_test.BaseTest):
         """
         LOG.info('Starting restart_ovs test.')
 
-        hypervisor_ip = self._get_hypervisor_ip_from_undercloud()[0]
+        hypervisor_ip = self._get_compute_ip()[0]
 
         cmd = 'sudo systemctl restart openvswitch.service'
         shell_utils.run_command_over_ssh(hypervisor_ip, cmd)

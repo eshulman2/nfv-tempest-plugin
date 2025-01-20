@@ -379,7 +379,7 @@ class ManagerMixin(object):
         :return Two lists of dedicated and shared cpus set
         """
         if not node:
-            node = self._get_hypervisor_ip_from_undercloud()[0]
+            node = self._get_compute_ip()[0]
         dedicated_cpus = "cpu_dedicated_set"
         shared_cpus = "cpu_shared_set"
         config_path = CONF.nfv_plugin_options.conf_files['cpu_pinning_nova']
@@ -477,7 +477,7 @@ class ManagerMixin(object):
 
     def check_number_queues(self):
         """This method checks the number of max queues"""
-        self.ip_address = self._get_hypervisor_ip_from_undercloud()
+        self.ip_address = self._get_compute_ip()
         ovs_process_pid = shell_utils.check_pid_ovs(self.ip_address[0])
         count_pmd = "ps -T -p {} | grep pmd | wc -l".format(ovs_process_pid)
         numpmds = int(shell_utils.run_command_over_ssh(self.ip_address[0],
@@ -742,7 +742,7 @@ class ManagerMixin(object):
                            one
         :return statistics
         """
-        self.ip_address = self._get_hypervisor_ip_from_undercloud()
+        self.ip_address = self._get_compute_ip()
         hypervisor_ip = self.ip_address[0]
         if hypervisor is not None:
             if hypervisor not in self.ip_address:
@@ -786,7 +786,7 @@ class ManagerMixin(object):
                            one
         :return multicast groups
         """
-        self.ip_address = self._get_hypervisor_ip_from_undercloud()
+        self.ip_address = self._get_compute_ip()
         hypervisor_ip = self.ip_address[0]
         if hypervisor is not None:
             if hypervisor not in self.ip_address:
@@ -872,7 +872,22 @@ class ManagerMixin(object):
                             i['id'])['hypervisor']['host_ip']
         return ip_address
 
-    def _get_hypervisor_ip_from_undercloud(self, **kwargs):
+    def get_host_from_guest_id(self, guest_id):
+        """This method gets the guest hypervisor name from the guest server id
+
+        Returns the hypervisor FQDN
+        """
+        try:
+            host = self.os_admin.servers_client.show_server(
+                guest_id
+            )['server']['OS-EXT-SRV-ATTR:hypervisor_hostname']
+        except IndexError:
+            raise IndexError('Seems like there is no server with id: '
+                             f'{guest_id}')
+
+        return host
+
+    def _get_compute_ip(self, **kwargs):
         """This Method lists aggregation based on name
 
         Returns the aggregated search for IP through Hypervisor list API
@@ -883,27 +898,25 @@ class ManagerMixin(object):
         :param kwargs['hyper_name']
         """
         ip_addresses = []
-        hypervisor = ""
         if 'server_id' in kwargs:
-            try:
-                hypervisor = self.os_admin.servers_client.show_server(
-                    kwargs['server_id']
-                )['server']['OS-EXT-SRV-ATTR:hypervisor_hostname']
-            except IndexError:
-                raise IndexError('Seems like there is no server with id: '
-                                 f'{kwargs["server_id"]}')
-        else:
-            if 'hyper_name' in kwargs:
-                hypervisor = kwargs['hyper_name']
+            hypervisor = self.get_host_from_server_id(kwargs['server_id'])
+        elif 'hyper_name' in kwargs:
+            hypervisor = kwargs['hyper_name']
 
-        hyp = self.os_admin.hypervisor_client.list_hypervisors(
+        hypervisor_list = self.os_admin.hypervisor_client.list_hypervisors(
             detail=True)['hypervisors']
-        if hypervisor != "":
-            ip_addresses = [val['host_ip'] for val in hyp
+        if hypervisor:
+            ip_addresses = [hypervisor['host_ip'] for hypervisor
+                            in hypervisor_list
                             if hypervisor.split('.')[0]
-                            in val['hypervisor_hostname']]
+                            in hypervisor['hypervisor_hostname']]
         else:
-            ip_addresses = [val['host_ip'] for val in hyp]
+            ip_addresses = [hypervisor['host_ip']
+                            for hypervisor in hypervisor_list]
+
+        if not ip_addresses:
+            raise IndexError('No ip address found for the requested hypervisor')
+
         return ip_addresses
 
     def locate_ovs_physnets(self, node=None, keys=None):
@@ -917,7 +930,7 @@ class ManagerMixin(object):
         :return The numa physnets dict is returned
         """
         if node is None:
-            node = self._get_hypervisor_ip_from_undercloud()[0]
+            node = self._get_compute_ip()[0]
 
         numa_physnets = {'numa_aware_net': {},
                          'non_numa_aware_net': [],
@@ -1070,7 +1083,7 @@ class ManagerMixin(object):
         """
         passthrough_nics = {}
         if nodes is None:
-            nodes = self._get_hypervisor_ip_from_undercloud()
+            nodes = self._get_compute_ip()
         key = ["nova::compute::pci::passthrough"]
         for node in nodes:
             passthrough_nics[node] = {}
@@ -1131,7 +1144,7 @@ class ManagerMixin(object):
         """
         ovs_dpdk_bonds = {}
         if node is None:
-            node = self._get_hypervisor_ip_from_undercloud()[0]
+            node = self._get_compute_ip()[0]
         os_net_config_cmd = 'cat /etc/os-net-config/config.yaml'
         load_f = yaml.safe_load
         content = shell_utils.run_command_over_ssh(node, os_net_config_cmd)

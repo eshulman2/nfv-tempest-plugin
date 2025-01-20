@@ -64,7 +64,7 @@ class TestMultiqueueScenarios(base_test.BaseTest):
         checks['queues'] = multiq_dict
         result = {}
 
-        hypervisors = self._get_hypervisor_ip_from_undercloud()
+        hypervisors = self._get_compute_ip()
 
         for hypervisor_ip in hypervisors:
             result[hypervisor_ip] = []

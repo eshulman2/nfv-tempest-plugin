@@ -38,7 +38,7 @@ class Day2Manager(base_test.BaseTest):
         if not hypervisors_ip:
             LOG.info('Fetching overcloud hypervisors ip addresses')
 
-            hypervisors_ip = self._get_hypervisor_ip_from_undercloud()
+            hypervisors_ip = self._get_compute_ip()
 
         rebooted_hypervisors = []
         for hypervisor in hypervisors_ip:

@@ -162,7 +162,7 @@ class TestIgmpSnoopingScenarios(base_test.BaseTest):
         Restart ovs and then execute test_igmp_snooping_deployment
         """
         LOG.info('Starting {} test.'.format(test))
-        hypervisor_ips = self._get_hypervisor_ip_from_undercloud()
+        hypervisor_ips = self._get_compute_ip()
         ovs_cmd = 'sudo systemctl restart openvswitch.service'
         for hyp in hypervisor_ips:
             shell_utils.run_command_over_ssh(hyp, ovs_cmd)

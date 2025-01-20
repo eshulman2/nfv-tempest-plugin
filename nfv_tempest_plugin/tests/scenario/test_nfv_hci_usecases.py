@@ -110,7 +110,7 @@ class TestHciScenarios(base_test.BaseTest):
         :param test: Test name from the config file
         """
         LOG.info('Execute ceph health status test command')
-        hypervisors = self._get_hypervisor_ip_from_undercloud()
+        hypervisors = self._get_compute_ip()
         cmd = ("sudo cephadm shell -- ceph -s | grep 'health:' | "
                "awk -F':' '{print $2}'")
         for hypervisor_ip in hypervisors:

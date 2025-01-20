@@ -50,6 +50,7 @@ class TestNfvBasic(base_test.BaseTest):
           - Active services (given in config)
           - Tuned active profile (given in config)
           - Kernel arguments (given in config)
+          - OVS config (given in config)
         """
         tuning_details = \
             json.loads(CONF.nfv_plugin_options.hypervisor_tuning_details)
@@ -57,12 +58,12 @@ class TestNfvBasic(base_test.BaseTest):
         services = tuning_details.get("services")
         tuned_profiles = tuning_details.get("tuned_profiles")
         kernel_args = tuning_details.get("kernel_args")
+        ovs_config = tuning_details.get('ovs_config')
 
+        kwargs = dict()
         if CONF.nfv_plugin_options.target_hypervisor:
-            self.hypervisor_ip = \
-                self._get_hypervisor_ip_from_undercloud(
-                    hyper_name=CONF.nfv_plugin_options.target_hypervisor)
-        self.hypervisor_ip = self._get_hypervisor_ip_from_undercloud()[0]
+            kwargs['hyper_name'] = CONF.nfv_plugin_options.target_hypervisor
+        self.hypervisor_ip = self._get_compute_ip(**kwargs)[0]
         self.assertNotEmpty(self.hypervisor_ip, "No hypervisor found")
 
         test_result = []
@@ -115,10 +116,23 @@ class TestNfvBasic(base_test.BaseTest):
             if result:
                 for arg in kernel_args:
                     if arg not in result:
-                        test_result.append("The kernel args are missing - {}"
-                                           .format(arg))
+                        test_result.append("The kernel args are missing"
+                                           f" - {arg}")
             else:
                 test_result.append("Kernel args: no output received")
+
+        if ovs_config:
+            ovs_command = "sudo ovs-vsctl list open_vswitch"
+            result = shell_utils.run_command_over_ssh(self.hypervisor_ip,
+                                                      ovs_command)
+            if result:
+                for conf in ovs_config:
+                    if conf not in result:
+                        test_result.append("The following configs are missing"
+                                           f" - {conf}")
+            else:
+                test_result.append("OVS config: was unable to get ovs config "
+                                   f"with the following command {ovs_command}")
 
         test_result = '\n'.join(test_result)
         self.assertEmpty(test_result, test_result)
@@ -131,10 +145,10 @@ class TestNfvBasic(base_test.BaseTest):
         """
         if CONF.nfv_plugin_options.target_hypervisor:
             self.hypervisor_ip = \
-                self._get_hypervisor_ip_from_undercloud(
+                self._get_compute_ip(
                     hyper_name=CONF.nfv_plugin_options.target_hypervisor)[0]
         else:
-            self.hypervisor_ip = self._get_hypervisor_ip_from_undercloud()[0]
+            self.hypervisor_ip = self._get_compute_ip()[0]
         self.assertNotEmpty(self.hypervisor_ip, "No hypervisor found")
 
         data = eval(CONF.nfv_plugin_options.idrac_data)

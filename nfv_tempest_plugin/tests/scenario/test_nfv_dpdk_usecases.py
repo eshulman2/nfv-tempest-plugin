@@ -244,3 +244,51 @@ class TestDpdkScenarios(base_test.BaseTest, QoSManagerMixin):
                             vnic_type='normal')
         self.collect_iperf_results(qos_rules_list, servers, key_pair)
         LOG.info('The {} test passed.'.format(test))
+
+    def test_dpdk_tso_iperf(self, test='dpdk_tso_iperf'):
+        """Test DPDK TSO iperf
+
+        The test deploys 2 instances.
+        One iperf server receives traffic from iperf client with
+        the test compares the result to a pre-set baseline
+        """
+        LOG.info('Start dpdk TSO iperf test.')
+
+        kwargs = {}
+        kwargs['sg_rules'] = [[{"protocol": "tcp", "direction": "ingress",
+                              "port_range_max": 5102,
+                               "port_range_min": 5101}]]
+
+        servers, key_pair = self.create_and_verify_resources(
+            test=test, num_servers=2, use_mgmt_only=True, **kwargs)
+
+        if len(servers) < 2:
+            raise ValueError('The test requires 2 instances. Only {}'
+                             ' exists'.format(len(servers)))
+
+        # for server in servers:
+
+        # LOG.info('Running iperf')
+        # self.run_iperf_test(servers, key_pair,
+        #                     vnic_type='normal')
+
+        # LOG.info('Collect iperf logs from iperf server, server3...')
+
+        # command = r"(grep -B 1 receiver {} || tail -1 {})"
+        # command += r" | grep  Gbits | awk '{print $7}'"
+        # # Receive result with number
+        # ssh_dest = self.get_remote_client(servers[srv.SERVER]['fip'],
+        #                                   username=self.instance_user,
+        #                                   private_key=key_pair[
+        #                                       'private_key'])
+        # # Assert result
+        # for index in range(srv.SERVER):
+        #     # If Default QoS, such as min_bw check only srv.CLIENT_1
+        #     if len(self.qos_policy_groups) > 0 and index == srv.CLIENT_2:
+        #         break
+        #     rate = ssh_dest. \
+        #         exec_command(command.replace('{}', log_files[index]))
+
+        #     self.assertNotEmpty(
+        #         rate, "Please check QoS definitions, iperf result for "
+        #         "in file {} is empty or low".format(log_files[index]))

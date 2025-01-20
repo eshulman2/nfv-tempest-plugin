@@ -152,7 +152,7 @@ class TestHypervisorScenarios(Day2Manager, AsyncUtilsManager, DCBManager):
             r'.*\[ConnectX\-6\]|.*BlueField\-2 integrated ConnectX\-6 Dx'
         )
         kw_args['servers_ips'] = self. \
-            _get_hypervisor_ip_from_undercloud()
+            _get_compute_ip()
         kw_args['multi_key_values'] = True
         result = shell_utils. \
             run_hypervisor_command_build_from_config(**kw_args)

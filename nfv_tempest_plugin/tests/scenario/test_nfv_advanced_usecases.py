@@ -92,10 +92,10 @@ class TestAdvancedScenarios(base_test.BaseTest):
         for srv in numa_aware_srv:
             LOG.info('Instance details: fip: {}, instance_id: {}'.format(
                 srv.get('fip'), srv['id']))
-            srv['hypervisor_ip'] = self._get_hypervisor_ip_from_undercloud(
+            srv['hypervisor_ip'] = self._get_compute_ip(
                 **{'server_id': srv['id']})[0]
             self.assertNotEmpty(srv['hypervisor_ip'],
-                                "_get_hypervisor_ip_from_undercloud "
+                                "_get_compute_ip "
                                 "returned empty ip list")
 
         LOG.info('Booting up another numa aware instance. Expect to fail.')
@@ -175,7 +175,7 @@ class TestAdvancedScenarios(base_test.BaseTest):
             self.check_instance_connectivity(ip_addr=fip_srv[0]['fip'],
                                              user=self.instance_user,
                                              key_pair=key_pair['private_key'])
-            second_hyper = self._get_hypervisor_ip_from_undercloud(
+            second_hyper = self._get_compute_ip(
                 **{'server_id': fip_srv[0]['id']})[0]
             self.assertNotEqual(fip_srv[0]['hypervisor_ip'], second_hyper,
                                 'The instance was not able to migrate to '
@@ -228,7 +228,7 @@ class TestAdvancedScenarios(base_test.BaseTest):
         # To avoid race conditions,
         # some times new cpu are given to the instance
         sleep(10)
-        second_hyper = self._get_hypervisor_ip_from_undercloud(
+        second_hyper = self._get_compute_ip(
             **{'server_id': srv1[0]['id']})[0]
         self.assertNotEqual(srv1[0]['hypervisor_ip'], second_hyper,
                             'The instance was not able to migrate to '
@@ -249,7 +249,7 @@ class TestAdvancedScenarios(base_test.BaseTest):
         self.check_instance_connectivity(ip_addr=srv2[0]['fip'],
                                          user=self.instance_user,
                                          key_pair=key_pair['private_key'])
-        srv2[0]['hypervisor_ip'] = self._get_hypervisor_ip_from_undercloud(
+        srv2[0]['hypervisor_ip'] = self._get_compute_ip(
             **{'server_id': srv2[0]['id']})[0]
         LOG.info('Boot second instance {} on the {} hypervisor'
                  .format(srv2[0]['id'], srv2[0]['hypervisor_ip']))
@@ -266,7 +266,7 @@ class TestAdvancedScenarios(base_test.BaseTest):
             self.check_instance_connectivity(ip_addr=srv1[0]['fip'],
                                              user=self.instance_user,
                                              key_pair=key_pair['private_key'])
-            first_hyper = self._get_hypervisor_ip_from_undercloud(
+            first_hyper = self._get_compute_ip(
                 **{'server_id': srv1[0]['id']})[0]
             self.assertEqual(srv1[0]['hypervisor_ip'], first_hyper,
                              'The {} instance was not migrated back to the {} '

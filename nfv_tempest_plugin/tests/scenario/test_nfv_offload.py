@@ -47,7 +47,7 @@ class TestNfvOffload(base_test.BaseTest):
         cmd = ("sudo ovs-vsctl get open_vswitch . "
                "other_config:hw-offload")
         # Retrieve all hypvervisors
-        hypervisors = self._get_hypervisor_ip_from_undercloud()
+        hypervisors = self._get_compute_ip()
         # Intialize results list
         result = []
         # Expected result is a list of dicts, each dict contains
@@ -80,7 +80,7 @@ class TestNfvOffload(base_test.BaseTest):
         """
         LOG.info('Starting offload_nic_eswitch_mode test')
         # Retrieve all hypervisors
-        hypervisors = self._get_hypervisor_ip_from_undercloud()
+        hypervisors = self._get_compute_ip()
         offload_nics = CONF.nfv_plugin_options.offload_nics
         if not offload_nics:
             LOG.info('The offload nics are not provided. Detecting...')
